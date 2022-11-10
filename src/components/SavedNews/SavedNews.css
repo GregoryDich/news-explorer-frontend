@@ -1,0 +1,24 @@
+.saved-news__content {
+  padding: 62px 7.2% 46px 7.2%;
+  background-color: #f5f6f7;
+}
+.saved-news__cards {
+  display: flex;
+  column-gap: 1.1%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+@media screen and (max-width: 768px) {
+  .saved-news__content {
+    padding: 32px 39px;
+  }
+  .saved-news__cards {
+    column-gap: 8px;
+  }
+}
+@media screen and (max-width: 600px) {
+  .saved-news__cards {
+    padding: 24px 16px 13px 16px;
+    column-gap: 11px;
+  }
+}
