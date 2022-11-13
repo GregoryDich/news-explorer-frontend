@@ -1,15 +1,15 @@
-import React from "react";
-import "./App.css";
-import { useLocation, Routes, Route } from "react-router-dom";
-import Header from "../Header/Header";
-import Navigation from "../Navigation/Navigation";
-import SignButton from "../SignButton/SignButton";
-import Main from "../Main/Main";
-import Footer from "../Footer/Footer";
-import SavedNews from "../SavedNews/SavedNews";
-import PopupWithForm from "../PopupWithForm/PopupWithForm";
-import FormInput from "../FormInput/FormInput";
-import RegisterResult from "../RegisterResult/RegisterResult";
+import React from 'react';
+import './App.css';
+import { useLocation, Routes, Route } from 'react-router-dom';
+import Header from '../Header/Header';
+import Navigation from '../Navigation/Navigation';
+import SignButton from '../SignButton/SignButton';
+import Main from '../Main/Main';
+import Footer from '../Footer/Footer';
+import SavedNews from '../SavedNews/SavedNews';
+import PopupWithForm from '../PopupWithForm/PopupWithForm';
+import FormInput from '../FormInput/FormInput';
+import RegisterResult from '../RegisterResult/RegisterResult';
 
 function App() {
   const [loggedIn, setLoggedIn] = React.useState(false);
@@ -23,13 +23,12 @@ function App() {
   const location = useLocation();
 
   React.useEffect(() => {
-    location.pathname === "/saved-news"
+    location.pathname === '/saved-news'
       ? setIsMainPage(false)
       : setIsMainPage(true);
   }, [location.pathname]);
 
   React.useEffect(() => {
-    console.log("suka");
     isRegisterPopupOpen || isLoginPopupOpen || isRegisterResultPopupOpen
       ? setIsHidden(true)
       : setIsHidden(false);
@@ -71,7 +70,7 @@ function App() {
   }
 
   return (
-    <div className={`app ${isMainPage && "app__background"}`}>
+    <div className={`app ${isMainPage && 'app-background'}`}>
       <Header
         isMainPage={isMainPage}
         isActive={isActive}
@@ -95,44 +94,44 @@ function App() {
       <Routes>
         <Route
           index
-          path="/"
+          path='/'
           element={<Main loggedIn={loggedIn} isMainPage={isMainPage} />}
         />
         <Route
-          path="/saved-news"
+          path='/saved-news'
           element={<SavedNews loggedIn={loggedIn} isMainPage={isMainPage} />}
         />
       </Routes>
       <PopupWithForm
         onClose={closeAllPopup}
         isOpen={isLoginPopupOpen}
-        buttonText="Sign up"
-        title="Sign in"
-        signError="test error"
+        buttonText='Sign up'
+        title='Sign in'
+        signError='test error'
         handleAction={handleLogin}
         switchPopup={handleSwitchPopup}
       >
-        <FormInput type="email" name="Email" placeholder="email" />
-        <FormInput type="password" name="Password" placeholder="password" />
+        <FormInput type='email' name='Email' placeholder='email' />
+        <FormInput type='password' name='Password' placeholder='password' />
       </PopupWithForm>
       <PopupWithForm
         onClose={closeAllPopup}
         isOpen={isRegisterPopupOpen}
-        buttonText="Sign in"
-        title="Sign up"
-        signError="test error"
+        buttonText='Sign in'
+        title='Sign up'
+        signError='test error'
         handleAction={handleRegister}
         switchPopup={handleSwitchPopup}
       >
-        <FormInput type="email" name="Email" placeholder="email" />
-        <FormInput type="password" name="Password" placeholder="password" />
-        <FormInput type="text" name="Username" placeholder="username" />
+        <FormInput type='email' name='Email' placeholder='email' />
+        <FormInput type='password' name='Password' placeholder='password' />
+        <FormInput type='text' name='Username' placeholder='username' />
       </PopupWithForm>
       <RegisterResult
         isOpen={isRegisterResultPopupOpen}
         onClose={closeAllPopup}
         switchPopup={handleSwitchPopup}
-        title="Registration successfully completed!"
+        title='Registration successfully completed!'
       />
       <Footer />
     </div>
