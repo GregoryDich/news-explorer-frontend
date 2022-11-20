@@ -14,7 +14,7 @@
   border-bottom: 3px solid transparent;
   cursor: pointer;
   background-color: transparent;
-  font-family: "Roboto";
+  font-family: 'Roboto';
   font-style: normal;
   font-weight: 500;
   font-size: 18px;
@@ -28,7 +28,7 @@
 .navigation__button:nth-child(2) {
   margin-right: 50px;
 }
-.navigation__button_inactive_black:hover {
+.navigation__button-inactive_black:hover {
   color: #fff;
 }
 .navigation__button_color_white {

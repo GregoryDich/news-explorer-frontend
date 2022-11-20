@@ -1,14 +1,18 @@
 .saved-news-header {
   padding: 40px 0 56px 7.2%;
-  font-family: "Roboto", sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 18px;
   line-height: 24px;
 }
 .saved-news-header__subtitle {
   color: rgba(26, 27, 34, 0.5);
+  margin: 0;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
 }
 .saved-news-header__title {
-  font-family: "Roboto Slab", sans-serif;
+  font-family: 'Roboto Slab', sans-serif;
   font-size: 40px;
   line-height: 46px;
   max-width: 530px;

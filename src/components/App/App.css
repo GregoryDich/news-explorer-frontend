@@ -4,7 +4,7 @@
   margin: 0 auto;
   overflow: hidden;
 }
-.app__background {
+.app-background {
   background-image: url(../../images/background.png);
   background-repeat: no-repeat;
   background-position: top center;

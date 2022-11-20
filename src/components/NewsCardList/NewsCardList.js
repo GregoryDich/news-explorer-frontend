@@ -1,23 +1,37 @@
-import React from "react";
-import ErrorLoader from "../ErrorLoader/ErrorLoader";
-import Preloader from "../Preloader/Preloader";
-import "./NewsCardList.css";
+import React from 'react';
+import Loader from '../Loader/Loader';
+import './NewsCardList.css';
 
-function NewsCardList({ children, isSearching, searchSucceed }) {
+function NewsCardList({
+  children,
+  isOpen,
+  searchResult,
+  articles,
+  handleCount,
+  showMoreButton,
+  searchErrorMessage,
+}) {
   return (
-    <section className="news-card-list">
-      {isSearching ? (
-        <>{!searchSucceed ? <ErrorLoader /> : <Preloader />}</>
-      ) : (
+    <section className={`news-card-list ${isOpen && 'news-card-list_opened'}`}>
+      {articles.length ? (
         <>
-          <h2 className="news-card-list__title">Search results</h2>
-          <div className="news-card-list__container">
-            <div className="news-card-list__cards">{children}</div>
+          <h2 className='news-card-list__title'>Search results</h2>
+          <div className='news-card-list__container'>
+            <div className='news-card-list__cards'>{children}</div>
           </div>
-          <button type="button" className="news-card-list__button">
+          <button
+            onClick={handleCount}
+            className={`news-card-list__button ${
+              showMoreButton && 'news-card-list__button_active'
+            }`}
+          >
             Show more
           </button>
         </>
+      ) : searchErrorMessage ? (
+        <p className='news-card-list__error'>{searchErrorMessage}</p>
+      ) : (
+        <Loader searchResult={searchResult} />
       )}
     </section>
   );

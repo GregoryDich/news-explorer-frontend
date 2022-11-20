@@ -1,15 +1,27 @@
-import React from "react";
-import "./App.css";
-import { useLocation, Routes, Route } from "react-router-dom";
-import Header from "../Header/Header";
-import Navigation from "../Navigation/Navigation";
-import SignButton from "../SignButton/SignButton";
-import Main from "../Main/Main";
-import Footer from "../Footer/Footer";
-import SavedNews from "../SavedNews/SavedNews";
-import PopupWithForm from "../PopupWithForm/PopupWithForm";
-import FormInput from "../FormInput/FormInput";
-import RegisterResult from "../RegisterResult/RegisterResult";
+import React from 'react';
+import './App.css';
+import { useLocation, Routes, Route } from 'react-router-dom';
+import Header from '../Header/Header';
+import Navigation from '../Navigation/Navigation';
+import SignButton from '../SignButton/SignButton';
+import Main from '../Main/Main';
+import Footer from '../Footer/Footer';
+import SavedNews from '../SavedNews/SavedNews';
+import PopupWithForm from '../PopupWithForm/PopupWithForm';
+import FormInput from '../FormInput/FormInput';
+import RegisterResult from '../RegisterResult/RegisterResult';
+import CurrentUserContext from '../../contexts/CurrentUserContext';
+import ProtectedRoute from '../ProtectedRoute/ProtectedRoute';
+import newsApi from '../../utils/newsApi';
+import {
+  register,
+  login,
+  checkToken,
+  getCurrentUser,
+  getArticles,
+  saveArticle,
+  deleteArticle,
+} from '../../utils/api';
 
 function App() {
   const [loggedIn, setLoggedIn] = React.useState(false);
@@ -20,27 +32,125 @@ function App() {
   const [isLoginPopupOpen, setIsLoginPopupOpen] = React.useState(false);
   const [isRegisterResultPopupOpen, setIsRegisterResultPopupOpen] =
     React.useState(false);
+  const [currentUser, setCurrentUser] = React.useState({});
+  const [signError, setSignError] = React.useState('');
   const location = useLocation();
+  const [articles, setArticles] = React.useState([]);
+  const [searchErrorMessage, setSearchErrorMessage] = React.useState('');
+  const [searchResult, setSearchResult] = React.useState(true);
+  const [isCardListOpen, setIsCardListOpen] = React.useState(false);
+  const [cardsCount, setCardsCount] = React.useState(3);
+  const [showMoreButton, setShowMoreButton] = React.useState(true);
 
   React.useEffect(() => {
-    location.pathname === "/saved-news"
+    const token = localStorage.getItem('jwt');
+    token &&
+      checkToken(token)
+        .then((res) => {
+          if (res.user) {
+            setCurrentUser(res.user);
+            setLoggedIn(true);
+          }
+        })
+        .catch((err) => console.log(err));
+  }, []);
+
+  React.useEffect(() => {
+    loggedIn &&
+      getArticles()
+        .then((res) => {
+          setCurrentUser((currentUser) => ({ ...currentUser, articles: res }));
+        })
+        .catch((err) => console.log(err));
+  }, [loggedIn]);
+
+  React.useEffect(() => {
+    cardsCount > articles.length
+      ? setShowMoreButton(false)
+      : setShowMoreButton(true);
+  }, [cardsCount, articles]);
+
+  React.useEffect(() => {
+    loggedIn &&
+      getCurrentUser()
+        .then((res) => {
+          setCurrentUser((currentUser) => ({ ...currentUser, ...res.user }));
+        })
+        .catch((err) => console.log(err));
+  }, [loggedIn]);
+
+  React.useEffect(() => {
+    location.pathname === '/saved-news'
       ? setIsMainPage(false)
       : setIsMainPage(true);
   }, [location.pathname]);
 
   React.useEffect(() => {
-    console.log("suka");
     isRegisterPopupOpen || isLoginPopupOpen || isRegisterResultPopupOpen
       ? setIsHidden(true)
       : setIsHidden(false);
   }, [isLoginPopupOpen, isRegisterPopupOpen, isRegisterResultPopupOpen]);
 
+  React.useEffect(() => {
+    const savedArticles = localStorage.getItem('articles');
+    if (savedArticles && savedArticles !== '[]') {
+      setArticles(JSON.parse(savedArticles).slice(0, cardsCount));
+      setIsCardListOpen(true);
+    }
+  }, [cardsCount]);
+
   function closeAllPopup() {
     setIsLoginPopupOpen(false);
     setIsRegisterPopupOpen(false);
     setIsRegisterResultPopupOpen(false);
+    setIsActive(false);
   }
-
+  function removeArticle(id) {
+    deleteArticle(id)
+      .then(() => {
+        const arr = currentUser.articles.filter((item) => item._id !== id);
+        setCurrentUser((currentUser) => ({
+          ...currentUser,
+          articles: arr,
+        }));
+      })
+      .catch((err) => console.log(err));
+  }
+  function handleCount() {
+    setCardsCount((cardsCount) => (cardsCount += 3));
+  }
+  function getData(keyword) {
+    setSearchResult(true);
+    setIsCardListOpen(true);
+    localStorage.removeItem('articles');
+    setArticles([]);
+    setCardsCount(3);
+    setSearchErrorMessage('');
+    newsApi
+      .getArticles(keyword)
+      .then((res) => {
+        !res.articles.length && setSearchResult(false);
+        localStorage.setItem('keyword', keyword);
+        localStorage.setItem('articles', JSON.stringify(res.articles));
+        setArticles(res.articles);
+      })
+      .catch(() =>
+        setSearchErrorMessage(
+          'Sorry, something went wrong during the request. There may be a connection issue or the server may be down. Please try again later.'
+        )
+      );
+  }
+  function addArticle(data) {
+    const keyword = localStorage.getItem('keyword');
+    saveArticle(keyword, { data })
+      .then((res) => {
+        setCurrentUser((currentUser) => ({
+          ...currentUser,
+          articles: [...currentUser.articles, res],
+        }));
+      })
+      .catch((err) => console.log(err));
+  }
   function handleSwitchPopup() {
     if (isLoginPopupOpen) {
       closeAllPopup();
@@ -48,93 +158,148 @@ function App() {
     }
     if (isRegisterPopupOpen) {
       closeAllPopup();
-      setIsLoginPopupOpen(true);
+      openLoginPopup(true);
     }
     if (isRegisterResultPopupOpen) {
       closeAllPopup();
-      setIsLoginPopupOpen(true);
+      openLoginPopup(true);
     }
   }
-
-  function handleLogin() {
-    setLoggedIn(true);
+  function openLoginPopup(boolean) {
+    setSignError('');
     closeAllPopup();
+    setIsLoginPopupOpen(boolean);
+  }
+  function handleLogin(data) {
+    setSignError('');
+    login(data)
+      .then((res) => {
+        return res.json();
+      })
+      .then((res) => {
+        if (res.message) {
+          setSignError(res.message);
+          return;
+        }
+        res.token && localStorage.setItem('jwt', res.token);
+        setLoggedIn(true);
+        closeAllPopup();
+      })
+      .catch((err) => console.log(err));
   }
 
-  function handleRegister() {
-    closeAllPopup();
-    setIsRegisterResultPopupOpen(true);
+  function handleRegister(data) {
+    setSignError('');
+    register(data)
+      .then((res) => {
+        return res.json();
+      })
+      .then((res) => {
+        if (res.message) {
+          setSignError(res.message);
+          return;
+        }
+        closeAllPopup();
+        setIsRegisterResultPopupOpen(true);
+      })
+      .catch((err) => console.log(err));
   }
-
+  function handleSignOut() {
+    setLoggedIn(false);
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('articles');
+    setCurrentUser({});
+  }
   function handleSignClick() {
-    !loggedIn ? setIsLoginPopupOpen(true) : setLoggedIn(false);
+    !loggedIn ? setIsLoginPopupOpen(true) : handleSignOut();
   }
 
   return (
-    <div className={`app ${isMainPage && "app__background"}`}>
-      <Header
-        isMainPage={isMainPage}
-        isActive={isActive}
-        setIsActive={setIsActive}
-        isHidden={isHidden}
-      >
-        <Navigation
-          loggedIn={loggedIn}
+    <div className={`app ${isMainPage && 'app-background'}`}>
+      <CurrentUserContext.Provider value={currentUser}>
+        <Header
           isMainPage={isMainPage}
           isActive={isActive}
           setIsActive={setIsActive}
+          isHidden={isHidden}
         >
-          <SignButton
+          <Navigation
             loggedIn={loggedIn}
             isMainPage={isMainPage}
-            handleSignClick={handleSignClick}
+            isActive={isActive}
             setIsActive={setIsActive}
+          >
+            <SignButton
+              loggedIn={loggedIn}
+              isMainPage={isMainPage}
+              handleSignClick={handleSignClick}
+              setIsActive={setIsActive}
+            />
+          </Navigation>
+        </Header>
+        <Routes>
+          <Route
+            index
+            path='/'
+            element={
+              <Main
+                loggedIn={loggedIn}
+                isMainPage={true}
+                onSearch={getData}
+                articles={articles}
+                searchResult={searchResult}
+                isOpen={isCardListOpen}
+                searchErrorMessage={searchErrorMessage}
+                handleCount={handleCount}
+                showMoreButton={showMoreButton}
+                cardsCount={cardsCount}
+                onCardSave={addArticle}
+                onCardDelete={removeArticle}
+              />
+            }
           />
-        </Navigation>
-      </Header>
-      <Routes>
-        <Route
-          index
-          path="/"
-          element={<Main loggedIn={loggedIn} isMainPage={isMainPage} />}
+          <Route
+            path='/saved-news'
+            element={
+              <ProtectedRoute loggedIn={loggedIn}>
+                <SavedNews onCardDelete={removeArticle} />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+        <PopupWithForm
+          onClose={closeAllPopup}
+          isOpen={isLoginPopupOpen}
+          buttonText='Sign up'
+          title='Sign in'
+          signError={signError}
+          handleAction={handleLogin}
+          switchPopup={handleSwitchPopup}
+        >
+          <FormInput type='email' name='Email' placeholder='email' />
+          <FormInput type='password' name='Password' placeholder='password' />
+        </PopupWithForm>
+        <PopupWithForm
+          onClose={closeAllPopup}
+          isOpen={isRegisterPopupOpen}
+          buttonText='Sign in'
+          title='Sign up'
+          signError={signError}
+          handleAction={handleRegister}
+          switchPopup={handleSwitchPopup}
+        >
+          <FormInput type='email' name='Email' placeholder='email' />
+          <FormInput type='password' name='Password' placeholder='password' />
+          <FormInput type='text' name='Username' placeholder='username' />
+        </PopupWithForm>
+        <RegisterResult
+          isOpen={isRegisterResultPopupOpen}
+          onClose={closeAllPopup}
+          switchPopup={handleSwitchPopup}
+          title='Registration successfully completed!'
         />
-        <Route
-          path="/saved-news"
-          element={<SavedNews loggedIn={loggedIn} isMainPage={isMainPage} />}
-        />
-      </Routes>
-      <PopupWithForm
-        onClose={closeAllPopup}
-        isOpen={isLoginPopupOpen}
-        buttonText="Sign up"
-        title="Sign in"
-        signError="test error"
-        handleAction={handleLogin}
-        switchPopup={handleSwitchPopup}
-      >
-        <FormInput type="email" name="Email" placeholder="email" />
-        <FormInput type="password" name="Password" placeholder="password" />
-      </PopupWithForm>
-      <PopupWithForm
-        onClose={closeAllPopup}
-        isOpen={isRegisterPopupOpen}
-        buttonText="Sign in"
-        title="Sign up"
-        signError="test error"
-        handleAction={handleRegister}
-        switchPopup={handleSwitchPopup}
-      >
-        <FormInput type="email" name="Email" placeholder="email" />
-        <FormInput type="password" name="Password" placeholder="password" />
-        <FormInput type="text" name="Username" placeholder="username" />
-      </PopupWithForm>
-      <RegisterResult
-        isOpen={isRegisterResultPopupOpen}
-        onClose={closeAllPopup}
-        switchPopup={handleSwitchPopup}
-        title="Registration successfully completed!"
-      />
-      <Footer />
+        <Footer />
+      </CurrentUserContext.Provider>
     </div>
   );
 }

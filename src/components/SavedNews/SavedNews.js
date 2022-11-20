@@ -1,26 +1,28 @@
-import React from "react";
-import "./SavedNews.css";
-import SavedNewsHeader from "../SavedNewsHeader/SavedNewsHeader";
-import NewsCard from "../NewsCard/NewsCard";
-import { useNavigate } from "react-router-dom";
+import React from 'react';
+import './SavedNews.css';
+import SavedNewsHeader from '../SavedNewsHeader/SavedNewsHeader';
+import NewsCard from '../NewsCard/NewsCard';
+import CurrentUserContext from '../../contexts/CurrentUserContext';
 
-function SavedNews({ loggedIn, isMainPage }) {
-  const navigate = useNavigate();
-  React.useEffect(() => {
-    !loggedIn && navigate("/");
-  }, [loggedIn, navigate]);
+function SavedNews({ onCardDelete }) {
+  const currentUser = React.useContext(CurrentUserContext);
   return (
-    <section className="saved-news">
+    <section className='saved-news'>
       <SavedNewsHeader />
-      <div className="saved-news__content">
-        <div className="saved-news__cards">
-          <NewsCard loggedIn={loggedIn} isMainPage={isMainPage} />
-          <NewsCard loggedIn={loggedIn} isMainPage={isMainPage} />
-          <NewsCard loggedIn={loggedIn} isMainPage={isMainPage} />
-          <NewsCard loggedIn={loggedIn} isMainPage={isMainPage} />
-          <NewsCard loggedIn={loggedIn} isMainPage={isMainPage} />
+      {currentUser.articles.length ? (
+        <div className='saved-news__content'>
+          <div className='saved-news__cards'>
+            {currentUser.articles.map((card, i) => (
+              <NewsCard
+                key={i}
+                card={card}
+                onCardDelete={onCardDelete}
+                isMainPage={false}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 }
