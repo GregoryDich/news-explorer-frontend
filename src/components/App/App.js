@@ -13,6 +13,8 @@ import RegisterResult from '../RegisterResult/RegisterResult';
 import CurrentUserContext from '../../contexts/CurrentUserContext';
 import ProtectedRoute from '../ProtectedRoute/ProtectedRoute';
 import newsApi from '../../utils/newsApi';
+import Login from '../Login/Login';
+import Register from '../Register/Register';
 import {
   register,
   login,
@@ -107,7 +109,7 @@ function App() {
   }
   function removeArticle(id) {
     deleteArticle(id)
-      .then(() => {
+      .then((res) => {
         const arr = currentUser.articles.filter((item) => item._id !== id);
         setCurrentUser((currentUser) => ({
           ...currentUser,
@@ -267,7 +269,7 @@ function App() {
             }
           />
         </Routes>
-        <PopupWithForm
+        <Login
           onClose={closeAllPopup}
           isOpen={isLoginPopupOpen}
           buttonText='Sign up'
@@ -275,11 +277,8 @@ function App() {
           signError={signError}
           handleAction={handleLogin}
           switchPopup={handleSwitchPopup}
-        >
-          <FormInput type='email' name='Email' placeholder='email' />
-          <FormInput type='password' name='Password' placeholder='password' />
-        </PopupWithForm>
-        <PopupWithForm
+        />
+        <Register
           onClose={closeAllPopup}
           isOpen={isRegisterPopupOpen}
           buttonText='Sign in'
@@ -287,11 +286,7 @@ function App() {
           signError={signError}
           handleAction={handleRegister}
           switchPopup={handleSwitchPopup}
-        >
-          <FormInput type='email' name='Email' placeholder='email' />
-          <FormInput type='password' name='Password' placeholder='password' />
-          <FormInput type='text' name='Username' placeholder='username' />
-        </PopupWithForm>
+        />
         <RegisterResult
           isOpen={isRegisterResultPopupOpen}
           onClose={closeAllPopup}

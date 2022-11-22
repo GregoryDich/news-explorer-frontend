@@ -12,9 +12,9 @@ function SavedNews({ onCardDelete }) {
       {currentUser.articles.length ? (
         <div className='saved-news__content'>
           <div className='saved-news__cards'>
-            {currentUser.articles.map((card, i) => (
+            {currentUser.articles.map((card) => (
               <NewsCard
-                key={i}
+                key={card._id}
                 card={card}
                 onCardDelete={onCardDelete}
                 isMainPage={false}
